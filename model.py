@@ -135,7 +135,7 @@ class Encoder(nn.Module):
 
 
 class Evaluator(nn.Module):
-    def __init__(self, n_classes, ftr_1=None, dim_1=None):
+    def __init__(self, n_classes, ftr_1=None, dim_1=None, cut_grad=True):
         super(Evaluator, self).__init__()
         if ftr_1 is None:
             # rely on provided input feature dimensions
@@ -159,7 +159,10 @@ class Evaluator(nn.Module):
         '''
         # collect features to feed into classifiers
         # - always detach() -- send no grad into encoder!
-        h_top_cls = flatten(ftr_1).detach()
+        if self.cut_grad:
+            h_top_cls = flatten(ftr_1).detach()
+        else:
+            h_top_cls = flatten(ftr_1)
         # compute predictions
         lgt_glb_mlp = self.block_glb_mlp(h_top_cls)
         lgt_glb_lin = self.block_glb_lin(h_top_cls)
@@ -233,7 +236,7 @@ class Model(nn.Module):
         self.class_modules = [self.evaluator]
         return self.evaluator
 
-    def forward(self, x1, x2, class_only=False):
+    def forward(self, x1, x2, class_only=False, cut_grad=True):
         '''
         Input:
           x1 : images from which to extract features -- x1 ~ A(x)
@@ -243,10 +246,12 @@ class Model(nn.Module):
           res_dict : various outputs depending on the task
         '''
         # dict for returning various values
+        if not cut_grad:
+            self.evaluator.cut_grad = False
         res_dict = {}
         if class_only:
             # shortcut to encode one image and evaluate classifier
-            rkhs_1, _, _ = self.encode(x1, no_grad=True)
+            rkhs_1, _, _ = self.encode(x1, no_grad=cut_grad)
             lgt_glb_mlp, lgt_glb_lin = self.evaluator(rkhs_1)
             res_dict['class'] = [lgt_glb_mlp, lgt_glb_lin]
             res_dict['rkhs_glb'] = flatten(rkhs_1)

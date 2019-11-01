@@ -1,3 +1,6 @@
+runs/*
+analysis/*
+data/*
 .vscode/
 default_run/
 *.tfevents.*

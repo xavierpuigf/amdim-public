@@ -204,11 +204,11 @@ def build_dataset(dataset, batch_size, input_dir=None, labeled_only=False):
         num_classes = 10
         train_transform = TransformsC10()
         test_transform = train_transform.test_transform
-        train_dataset = datasets.CIFAR10(root='/tmp/data/',
+        train_dataset = datasets.CIFAR10(root='data/',
                                          train=True,
                                          transform=train_transform,
                                          download=True)
-        test_dataset = datasets.CIFAR10(root='/tmp/data/',
+        test_dataset = datasets.CIFAR10(root='data/',
                                         train=False,
                                         transform=test_transform,
                                         download=True)
